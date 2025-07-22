@@ -17,8 +17,7 @@
 
 
 -- select * from TestData
-
-
+-- drop table TestData
 
 declare @epmzname varchar(200) = 'это пранк бро', -- название формы (у типа ЭПМЗ максимальный размер 100, если название более 100 символов - оно обрежется, у формы - 200)
 	@type varchar(20) = '', -- тип элемента
@@ -41,8 +40,8 @@ declare @epmzname varchar(200) = 'это пранк бро', -- название формы (у типа ЭПМЗ
 	@group_col int = 0,
 	@dx int = 5, -- стандартный интервал между элементами на строке
 	@cur_col int = 0, -- текущий столбец
-	@ex_col int = 0, -- прошлый столбец
-	@ex_row int = 0, -- прошлая строка
+	@ex_col int = -1, -- прошлый столбец
+	@ex_row int = -1, -- прошлая строка
 	@cur_row int = 0, -- текущая строка
 	@FormContent xml, -- xml, которая будет на выходе
 	@FormElement xml, -- кусок xml, который будет добавляться к @FormContent
@@ -76,26 +75,24 @@ FOR SELECT [type],
 	height,
 	width,
 	postfix,
-	[default] 
+	[default],
+	items
 from TestData
 open Cur;
     fetch next from Cur
 		into @type,
 			@prefix,
-			@row,
-			@column,
+			@cur_row,
+			@cur_col,
 			@height,
 			@width,
 			@postfix,
-			@default;
+			@default,
+			@items
     while @@FETCH_STATUS = 0
 	begin
 		if @type = 'group' -- если элемент - заголовок группы
 		begin -- добавление заголовка группы, обновление column и row
-			set @cur_col = 0;
-			set @cur_row = 0;
-			set @ex_row = 0;
-			set @ex_col = 0;
 			set @group = @group + 1;
 			set @x = 0;
 			set @y = @y + @dy_group;
@@ -119,15 +116,13 @@ open Cur;
 			if @cur_row = @ex_row -- проверяем данный элемент, находится ли он на текущей строке или нет
 			begin -- если да, двигаемся по X
 				set @ex_col = @cur_col;
-				set @cur_col = @cur_col + 1;
 				set @x = @x + @dx;
 			end;
 			else -- если нет, то спускаемся вниз по Y
 			begin
 				set @ex_row = @cur_row;
-				set @cur_row = @cur_row + 1;
 				set @x = 5;
-				set @y = @y + @dy;
+				set @y = @y + @dy + iif(@type in ('строка', 'ВС'), 30, 0);
 			end;
 		end;
 		-- формируем имя элемента (позже надо будет добавить правило препинания)
@@ -238,15 +233,18 @@ open Cur;
 		fetch next from Cur 
 		into @type,
 			@prefix,
-			@row,
-			@column,
+			@cur_row,
+			@cur_col,
 			@height,
 			@width,
 			@postfix,
-			@default;
+			@default,
+			@items
 	end                                
 close Cur;                                            
 deallocate Cur;
+
+select @FormContent
 
 /*
 EXECUTE sp_iu_custom_med_form_and_epmz_type
