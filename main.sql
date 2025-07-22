@@ -238,7 +238,6 @@ open Cur;
 		fetch next from Cur 
 		into @type,
 			@prefix,
-			@groupname,
 			@row,
 			@column,
 			@height,
