@@ -1,0 +1,506 @@
+﻿<FormConstructor>
+  <form Name="designform_frm" Caption="Экранная форма" Width="1049" Height="891" Color="-16777201" Font.Color="-16777208" Font.Size="12" Font.Name="Courier New">
+    <OBJECT type="TmedLabel">
+      <Caption>это пранк бро</Caption>
+      <Name>FormTitle</Name>
+      <Left>5</Left>
+      <Top>5</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>14</Size>
+        <Style>fsBold</Style>
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Анамнез</Caption>
+      <Name>Label0</Name>
+      <Left>5</Left>
+      <Top>32</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>R00</Name>
+      <Left>5</Left>
+      <Top>55</Top>
+      <Width>900</Width>
+      <Height>120</Height>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>Анамнез</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Жалобы</Caption>
+      <Name>Label1</Name>
+      <Left>5</Left>
+      <Top>185</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>R01</Name>
+      <Left>5</Left>
+      <Top>208</Top>
+      <Width>900</Width>
+      <Height>120</Height>
+      <OBJECT type="Lines">
+        <Text>грустно
+скучно</Text>
+      </OBJECT>
+      <MedDescription>Жалобы</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Анамнез жизни</Caption>
+      <Name>Label2</Name>
+      <Left>5</Left>
+      <Top>338</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>R02</Name>
+      <Left>5</Left>
+      <Top>361</Top>
+      <Width>900</Width>
+      <Height>120</Height>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>Анамнез жизни</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Голова</Caption>
+      <Name>G00</Name>
+      <Left>5</Left>
+      <Top>486</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>14</Size>
+        <Style>fsBold</Style>
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>количество волос</Caption>
+      <Name>Label3</Name>
+      <Left>5</Left>
+      <Top>523</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExComboBox">
+      <MedDescription>количество волос</MedDescription>
+      <Name>G00R00</Name>
+      <Left>197</Left>
+      <Top>523</Top>
+      <Width>300</Width>
+      <OBJECT type="Properties">
+        <OBJECT type="Items">
+          <Text>много 
+мало
+лысеет
+шевелюра
+лысый</Text>
+        </OBJECT>
+      </OBJECT>
+      <text>много</text>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>какого цвета глаза</Caption>
+      <Name>Label4</Name>
+      <Left>502</Left>
+      <Top>523</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExComboBox">
+      <ItemIndex>-1</ItemIndex>
+      <MedDescription>какого цвета глаза</MedDescription>
+      <Name>G00R00C01</Name>
+      <Left>718</Left>
+      <Top>523</Top>
+      <Width>300</Width>
+      <OBJECT type="Properties">
+        <OBJECT type="Items">
+          <Text>карие
+голубые
+синие
+розовые</Text>
+        </OBJECT>
+      </OBJECT>
+      <text />
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>рот</Caption>
+      <Name>Label5</Name>
+      <Left>5</Left>
+      <Top>554</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExEdit">
+      <MedDescription>рот</MedDescription>
+      <Name>G00R01</Name>
+      <Left>41</Left>
+      <Top>554</Top>
+      <Width>150</Width>
+      <Text />
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>рот</Caption>
+      <Name>G00R01D01</Name>
+      <Left>215</Left>
+      <Top>580</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Руки</Caption>
+      <Name>G01</Name>
+      <Left>5</Left>
+      <Top>580</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>14</Size>
+        <Style>fsBold</Style>
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Описание</Caption>
+      <Name>Label7</Name>
+      <Left>5</Left>
+      <Top>617</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>G01R00</Name>
+      <Left>5</Left>
+      <Top>640</Top>
+      <Width>900</Width>
+      <Height>160</Height>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>Описание</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>количество пальце</Caption>
+      <Name>Label8</Name>
+      <Left>5</Left>
+      <Top>810</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExEdit">
+      <MedDescription>количество пальце</MedDescription>
+      <Name>G01R01</Name>
+      <Left>209</Left>
+      <Top>810</Top>
+      <Width>80</Width>
+      <Text />
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>количество пальце</Caption>
+      <Name>G01R01D01</Name>
+      <Left>313</Left>
+      <Top>810</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>из них с ногтями</Caption>
+      <Name>Label10</Name>
+      <Left>342</Left>
+      <Top>810</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExEdit">
+      <MedDescription>из них с ногтями</MedDescription>
+      <Name>G01R01C01</Name>
+      <Left>534</Left>
+      <Top>810</Top>
+      <Width>80</Width>
+      <Text />
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>из них с ногтями</Caption>
+      <Name>G01R01C01D01</Name>
+      <Left>638</Left>
+      <Top>810</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>средняя длина</Caption>
+      <Name>Label12</Name>
+      <Left>667</Left>
+      <Top>810</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExEdit">
+      <MedDescription>средняя длина</MedDescription>
+      <Name>G01R01C02</Name>
+      <Left>823</Left>
+      <Top>810</Top>
+      <Width>80</Width>
+      <Text />
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>средняя длина</Caption>
+      <Name>G01R01C02D01</Name>
+      <Left>927</Left>
+      <Top>836</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>волосистость</Caption>
+      <Name>Label14</Name>
+      <Left>5</Left>
+      <Top>841</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>G01R02</Name>
+      <Left>5</Left>
+      <Top>864</Top>
+      <Width>900</Width>
+      <Height>80</Height>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>волосистость</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Мозг</Caption>
+      <Name>G02</Name>
+      <Left>5</Left>
+      <Top>949</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>14</Size>
+        <Style>fsBold</Style>
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>Деятельность мозга</Caption>
+      <Name>Label15</Name>
+      <Left>5</Left>
+      <Top>986</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>G02R00</Name>
+      <Left>5</Left>
+      <Top>1009</Top>
+      <Width>900</Width>
+      <Height>101</Height>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>Деятельность мозга</MedDescription>
+    </OBJECT>
+    <OBJECT type="TmedLabel">
+      <Caption>IQ</Caption>
+      <Name>Label16</Name>
+      <Left>5</Left>
+      <Top>1120</Top>
+      <OBJECT type="Font">
+        <Charset>1</Charset>
+        <Color>-16777208</Color>
+        <Height>-11</Height>
+        <Name>Courier New</Name>
+        <Orientation>0</Orientation>
+        <Pitch>fpDefault</Pitch>
+        <Size>12</Size>
+        <Style />
+        <Quality>fqDefault</Quality>
+      </OBJECT>
+    </OBJECT>
+    <OBJECT type="TmedExMemo">
+      <Name>G02R01</Name>
+      <Left>5</Left>
+      <Top>1143</Top>
+      <Width>900</Width>
+      <OBJECT type="Lines">
+        <Text />
+      </OBJECT>
+      <MedDescription>IQ</MedDescription>
+    </OBJECT>
+  </form>
+  <GroupsForPF />
+  <HtmlTemplate Content="&lt;table&gt;  &lt;/table&gt;" StdTemplate="0" />
+</FormConstructor>

@@ -3,7 +3,8 @@ create FUNCTION dbo.make_label_xml( -- создает надпись
 	@y int,
 	@x int,
 	@caption varchar(500),
-	@font_size int
+	@font_size int,
+	@style varchar(50)
 )
 RETURNS
 XML
@@ -28,6 +29,7 @@ set @medLabel = (
 				'0' AS [Orientation],
                 'fpDefault' AS [Pitch],
                 @font_size AS [Size],
+				@style AS [Style],
 				'fqDefault' as [Quality]
             FOR XML PATH('OBJECT'), TYPE
         )
