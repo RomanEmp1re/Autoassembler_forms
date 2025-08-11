@@ -1,10 +1,11 @@
-create FUNCTION dbo.make_label_xml( -- создает надпись
+alter FUNCTION dbo.make_label_xml( -- создает надпись
 	@name varchar(100),
 	@y int,
 	@x int,
 	@caption varchar(500),
 	@font_size int,
-	@style varchar(50)
+	@style varchar(50),
+	@font_name varchar(50)
 )
 RETURNS
 XML
@@ -25,7 +26,7 @@ set @medLabel = (
                 '1' AS [Charset],
                 '-16777208' AS [Color],
                 '-11' AS [Height],
-                'Courier New' AS [Name],
+                @font_name AS [Name],
 				'0' AS [Orientation],
                 'fpDefault' AS [Pitch],
                 @font_size AS [Size],

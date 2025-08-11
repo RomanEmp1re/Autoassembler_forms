@@ -1,6 +1,10 @@
 
 declare
-	@default_width int = 900;
+	@default_width int = 900, -- совокупная ширина элементов. Дальше этой ширины элементы не добавляются
+	@default_font varchar(20) = 'Segoe UI', -- дефолтный шрифт для формы. Применяется для всей формы
+	@header_style varchar(50) = 'fsBold', -- Стиль для заголовков
+	@epmzname varchar(200) = 'это пранк бро', -- название созаваемой ЭПМЗ и надпись в заголовке
+	@startx int = 5; -- стартовая позиция слева
 
 declare -- первичное преобразование, анализ и проверка правильности заполнения
 	@elements table(
@@ -39,6 +43,7 @@ with prepare as (
 		[row],
 		case [type]
 			when 'memo' then cnt_str * 18 + 8
+			when 'diagnosis' then cnt_str * 18 + 8
 			else 26
 		end as height,
 		case
@@ -132,11 +137,8 @@ order by groupid, id
 select * from @elements
 
 declare 
-	@epmzname varchar(200) = 'это пранк бро', -- название формы (у типа ЭПМЗ максимальный размер 100, если название более 100 символов - оно обрежется, у формы - 200)
 	@type varchar(20) = '', -- тип элемента
     @prefix varchar(100) = '', -- для meddescription и надписей перед элементами
-	@G int, -- текущая группа
-	@row int, -- текущая строка в протоколе
 	@column int, -- текущий столбец в протоколе
 	@height int = 0, -- высота элемента
 	@width int = 0, -- ширина элемента
@@ -145,18 +147,17 @@ declare
 	@items nvarchar(4000) = '', -- список элементов выпадающего списка
 	@structure varchar(10),
 	@fontstyle varchar(30),
-	@fontsize int,
 	@is_last_in_row bit = 0;
 
 	declare @ex_groupname varchar(100)= '', -- имя прошлой группы
 	@y int = 5, -- текущая координата по y (параметр top у элемента)
 	@x int = 5, -- текущая координата по x (параметр left у элемента)
-	@startx int = 5, -- отступ слева
 	@dy int = 5, -- стандартный интервал между элементами в форме
 	@dy_group int = 10, -- стандартный интервал под группами
 	@parentgroup int = -1,
 	@group_col int = 0,
 	@dx int = 5, -- стандартный интервал между элементами на строке
+	@G int = 0, -- текущая группа
 	@C int = 0, -- текущий столбец
 	@R int = 0, -- текущая строка
 	@D int = 0,
@@ -174,9 +175,9 @@ set @FormContent = (
 		'-16777201' AS [form/@Color],
 		'-16777208' AS [form/@Font.Color],
 		'12' AS [form/@Font.Size],
-		'Courier New' AS [form/@Font.Name],
+		@default_font AS [form/@Font.Name],
 		(-- так же добавляем сразу же большую надпись - название формы
-			SELECT dbo.make_label_xml('FormTitle', @y, @x, @epmzname, 14, 'fsBold')
+			SELECT dbo.make_label_xml('FormTitle', @y, @x, @epmzname, 14, 'fsBold', @default_font)
 			for xml path(''), type
 		) AS [form],
 		'' as [GroupsForPF],
@@ -203,7 +204,7 @@ SELECT
 	items,
 	is_last_in_row
 from @elements
-where type in ('Combo', 'Memo', 'Edit', 'Label')
+where type in ('Combo', 'Memo', 'Edit', 'Label', 'Diagnosis')
 order by groupid, id
 open Cur;
     fetch next from Cur
@@ -223,8 +224,8 @@ open Cur;
 			@is_last_in_row
     while @@FETCH_STATUS = 0
 	begin -- определяем шрифт
-		if @structure = 'group' -- если элемент - заголовок группы
-			set @fontstyle = 'fsBold';
+		if @structure = 'header' -- если элемент - заголовок группы
+			set @fontstyle = @header_style;
 		else
 			set @fontstyle = '';
 
@@ -240,7 +241,8 @@ open Cur;
 					@x,
 					@prefix,
 					12,
-					@fontstyle
+					@fontstyle,
+					@default_font
 				)
 			);
 			set @FormContent.modify('insert sql:variable("@FormElement")
@@ -249,7 +251,7 @@ open Cur;
 			set @x = @x + 8*len(@prefix) + @dx;
 		end;
 
-		if @type = 'Memo' -- если текстовое поле, мы добавляем подпись к нему и дальше текстовое поле
+		if @type in ('Memo', 'Diagnosis') -- если текстовое поле или диагноз, мы добавляем подпись к нему и дальше текстовое поле
 		begin
 			set @FormElement = (
 				select dbo.make_label_xml( -- надпись перед текстовым полем
@@ -258,7 +260,8 @@ open Cur;
 					@x,
 					@prefix,
 					12,
-					@fontstyle
+					@fontstyle,
+					@default_font
 				)
 			);
 			set @FormContent.modify('insert sql:variable("@FormElement")
@@ -266,12 +269,16 @@ open Cur;
 			);
 			set @labelcount = @labelcount + 1;
 			set @y = @y + 18 + @dy; -- 18 - костанта для 12 шрифта
+		end;
+
+		if @type = 'memo'
+		begin
 			set @FormElement = (
 				select dbo.make_memo_xml( -- само текстовое поле
 					@y, 
 					@x, 
 					@width, 
-					@height, -- уравнение нахождения высоты ТП зная кол-во строк при шрифте courier new
+					@height, 
 					isnull(@default, ''), 
 					@elementName,
 					@prefix
@@ -282,8 +289,30 @@ open Cur;
 			);
 		end;
 
-		if @type in ('Edit', 'ComboBox', 'CheckComboBox', 'DateEdit') and @prefix <> ''
+		if @type = 'diagnosis'
 		begin
+			set @FormElement = (
+				select dbo.make_diagnosis_xml( -- сам список диагнозов
+					@y, 
+					@x, 
+					@width, 
+					@height,
+					@elementName,
+					@prefix
+				)
+			);
+			set @FormContent.modify('insert sql:variable("@FormElement")
+				as last into (/FormConstructor/form)[1]'
+			);
+		end;
+
+		if @type in ('Edit', 'Combo', 'CheckCombo', 'Date') and @prefix <> ''
+		begin
+			if (@x + @dx + len(@prefix) * 10 > @default_width) or (@x + @dx + len(@prefix) * 10 + @width > @default_width)
+			begin
+				set @x = @startx;
+				set @y = @y + @dy + @height;
+			end;
 			set @FormElement = (
 				select dbo.make_label_xml( -- надпись перед текстовым полем
 					'Label' + cast(@labelcount as varchar(3)),
@@ -291,7 +320,8 @@ open Cur;
 					@x,
 					@prefix,
 					12,
-					@fontstyle
+					@fontstyle,
+					@default_font
 				)
 			);
 			set @FormContent.modify('insert sql:variable("@FormElement")
@@ -299,6 +329,11 @@ open Cur;
 			);
 			set @x = @x + @dx + len(@prefix) * 10;
 			set @labelcount = @labelcount + 1;
+			if @x + @dx + @width > @default_width
+			begin
+				set @x = @startx;
+				set @y = @y + @dy + @height;
+			end;
 		end;
 
 		if @type = 'Edit'
@@ -368,15 +403,15 @@ select @FormContent
 /*
 EXECUTE sp_iu_custom_med_form_and_epmz_type
 @EpmzTypeId = 0,
-@EpmzCode = '2',
-@EpmzName = 'это пранк бро',
+@EpmzCode = '63',
+@EpmzName = 'это жесткий пранк бро 3',
 @EpmzGroupId = 1,
-@FormName = 'это пранк бро',
+@FormName = 'это жесткий пранк бро 3',
 @FormContent = @FormContent,
 @HtmlTemplate = '',
 @ParamStr = '<?xml version="1.0" encoding="windows-1251"?><MEDPARAMSTR><paramStr><FORSTATIONAR>0</FORSTATIONAR><CODEPACS/><PRIVACYLEVEL>0</PRIVACYLEVEL><XCOMPONENTCOUNT>1</XCOMPONENTCOUNT></paramStr></MEDPARAMSTR>',
-@OutParamStr = '';
-*/
+@OutParamStr = '';*/
+
 -- при шрифте CourierNew 10 кегля ширина label на 1 символ - 8
 
 --delete from CUSTOM_MED_FORMS where name = 'это пранк бро'
