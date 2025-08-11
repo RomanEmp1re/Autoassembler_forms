@@ -20,7 +20,7 @@ set @medLabel = (
         @y AS [Top],
         -- Font
         (
-            SELECT
+			SELECT
                 'Font' AS [@type],
                 '1' AS [Charset],
                 '-16777208' AS [Color],

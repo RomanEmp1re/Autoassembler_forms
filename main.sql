@@ -1,14 +1,19 @@
+
 declare
 	@default_width int = 900;
 
 declare -- первичное преобразование, анализ и проверка правильности заполнения
-	@elements table(id int,
+	@elements table(
+		id int,
 		structure varchar(20),
 		[type] varchar(20), 
-		prefix varchar(100), 
+		prefix varchar(100),
+		groupid int,
 		[row] int,
 		[col] int,
-		cnt_str int, 
+		[depth] int,
+		element_name varchar(50),
+		height int, 
 		width int, 
 		[default] varchar(4000), 
 		items varchar(4000),
@@ -16,55 +21,113 @@ declare -- первичное преобразование, анализ и проверка правильности заполнения
 );
 
 -- подготовка таблицы к расчетам
+with prepare as (
+	select
+		id,
+		isnull(
+			(
+				select top 1 tt.id
+				from TestData$ as tt
+				where tt.structure = 'header'
+					and tt.id <= t.id
+				order by tt.id desc
+			), 
+		0) as groupid,
+		structure,
+		[type],
+		prefix,
+		[row],
+		case [type]
+			when 'memo' then cnt_str * 18 + 8
+			else 26
+		end as height,
+		case
+			when type = 'memo' then @default_width
+			when type =  'label' then len(prefix) * 8 -- рассчитываем ширину надписи, чтобы потом отмерять интервалы
+			else width
+		end as width,
+		isnull([default], '') as [default],
+		case [type]
+			when 'combo' then case
+				when items is not null then items
+				else 'да'+char(10)+'нет'
+			end
+			else null
+		end as items,
+		case -- признак того, что надпись является последней в строке
+			when 
+				lead([row]) over (order by id) <> [row] -- следующая строка имеет другой номер
+				or lead(structure) over (order by id) = 'header' -- или следующий элемент - заголовок
+				or lead(id) over (order by id) is null -- или это вообще последний элемент во всем протоколе
+				or structure = 'header'
+			then 1
+			else 0
+		end as is_last_in_row
+	from TestData$ as t
+	where id > 0
+		and (row >= 0 or structure = 'header')
+),
+prepare_2 as (
+	select
+		id,
+		dense_rank() over (order by groupid) - 2 as groupid,
+		structure,
+		[type],
+		prefix,
+		[row],
+		row_number() over (partition by groupid, [row] order by id) - 1 as col,
+		case structure
+			when 'postfix' then 1
+			else null
+		end as depth,
+		height,
+		width,
+		[default],
+		items,
+		is_last_in_row
+	from prepare
+),
+prepare_3 as (
+	select 
+		id,
+		structure,
+		[type],
+		prefix,
+		groupid,
+		[row],
+		case structure
+			when 'postfix' then lag(col) over (order by id)
+			else col
+		end as col,
+		depth,
+		height,
+		width,
+		[default],
+		items,
+		is_last_in_row
+	from prepare_2
+)
 insert into @elements
 select
 	id,
-	case structure
-		when 'заголовок' then 'header'
-		when 'подпись' then 'postfix'
-	end as structure,
-	case [type]
-		when 'ТП' then 'Memo'
-		when 'ВС' then 'ComboBox'
-		when 'строка' then 'Edit'
-		when 'надпись' then 'Label'
-		else 'Неизвестный элемент'
-	end as type,
+	structure,
+	[type],
 	prefix,
-	row,
-	row_number() over (partition by row order by id) - 1 as col,
-	case [type]
-		when 'ТП' then case
-			when cnt_str > 0 then cnt_str
-			else 1
-		end
-		else 0
-	end as cnt_str,
-	case
-		when type = 'ТП' then @default_width
-		when type =  'Label' then len(prefix) * 8 -- рассчитываем ширину надписи, чтобы потом отмерять интервалы
-		else width
-	end as width,
-	isnull([default], '') as [default],
-	case [type]
-		when 'ВС' then case
-			when items is not null then items
-			else 'да'+char(10)+'нет'
-		end
-		else null
-	end as items,
-	case -- признак того, что надпись является последней в строке
-		when structure = 'группа' then null
-		when 
-			lead([row]) over (order by id) <> [row] -- следующая строка имеет другой номер
-			or lead(structure) over (order by id) = 'группа' -- или следующий элемент - группа
-			or lead(id) over (order by id) is null -- или это вообще последний элемент во всем протоколе
-		then 1
-		else 0
-	end as is_last_in_row
-from TestData$
-where id > 0
-	and (row > 0 or structure = 'заголовок')
+	groupid,
+	[row],
+	[col],
+	[depth],
+	case structure
+		when 'header' then dbo.make_group_name(groupid, -1, 0)
+		else dbo.make_element_name(groupid, [row], [col], depth, -1)
+	end as element_name,
+	height,
+	width,
+	[default],
+	items,
+	is_last_in_row
+from prepare_3
+order by groupid, id
 
 select * from @elements
 
@@ -72,14 +135,13 @@ declare
 	@epmzname varchar(200) = 'это пранк бро', -- название формы (у типа ЭПМЗ максимальный размер 100, если название более 100 символов - оно обрежется, у формы - 200)
 	@type varchar(20) = '', -- тип элемента
     @prefix varchar(100) = '', -- для meddescription и надписей перед элементами
-	@G int = -1, -- текущая группа
-	@row int = 0, -- текущая строка в протоколе
-	@column int = 0, -- текущий столбец в протоколе
+	@G int, -- текущая группа
+	@row int, -- текущая строка в протоколе
+	@column int, -- текущий столбец в протоколе
 	@height int = 0, -- высота элемента
 	@width int = 0, -- ширина элемента
-	@postfix varchar(50) = '', -- постфикс - это надпись, которая будет следовать после элемента
 	@default nvarchar(4000) = '', -- дефолтное значение элемента
-	@labelcount int = 0,
+	@labelcount int = 0, -- счетчик надписей для элементов, которые не нумеруются динамически
 	@items nvarchar(4000) = '', -- список элементов выпадающего списка
 	@structure varchar(10),
 	@fontstyle varchar(30),
@@ -90,14 +152,15 @@ declare
 	@y int = 5, -- текущая координата по y (параметр top у элемента)
 	@x int = 5, -- текущая координата по x (параметр left у элемента)
 	@startx int = 5, -- отступ слева
-	@dy int = 5, -- стандартный интервал между элементами в форме, можно поменять по желанию
-	@dy_group int = 10, -- стандартный интервал под группами, можно поменять по желанию
+	@dy int = 5, -- стандартный интервал между элементами в форме
+	@dy_group int = 10, -- стандартный интервал под группами
 	@parentgroup int = -1,
 	@group_col int = 0,
 	@dx int = 5, -- стандартный интервал между элементами на строке
 	@C int = 0, -- текущий столбец
-	@exR int = -1, -- прошлая строка
 	@R int = 0, -- текущая строка
+	@D int = 0,
+	@cnt_str int = 0, -- кол-во строк в 
 	@FormContent xml, -- xml, которая будет на выходе
 	@FormElement xml, -- кусок xml, который будет добавляться к @FormContent
 	@elementName varchar(50); -- имя элемента
@@ -129,53 +192,47 @@ SELECT
 	structure,
 	[type], 
     nullif(prefix, ''),
+	groupid,
 	[row],
 	col,
-	cnt_str,
+	depth,
+	element_name,
+	height,
 	width,
 	[default],
 	items,
 	is_last_in_row
 from @elements
-where type in ('ВС', 'ТП', 'строка', 'группа')
+where type in ('Combo', 'Memo', 'Edit', 'Label')
+order by groupid, id
 open Cur;
     fetch next from Cur
 		into 
 			@structure,
 			@type,
 			@prefix,
+			@G,
 			@R,
 			@C,
-			@cnt_str
+			@D,
+			@elementName,
+			@height,
 			@width,
 			@default,
 			@items,
 			@is_last_in_row
     while @@FETCH_STATUS = 0
-	begin
-		-- определяем имена
+	begin -- определяем шрифт
 		if @structure = 'group' -- если элемент - заголовок группы
-		begin -- добавление заголовка группы, обновление column и row, x и y
-			set @G = @G+ 1;
-			set @elementName = dbo.make_group_name(@G, @parent_group, @group_col);
 			set @fontstyle = 'fsBold';
-		end;
-		if @structure = 'postfix'
-		begin
+		else
 			set @fontstyle = '';
-			set @elementName = dbo.make_element_name(@G, @R, @C, 1, 0);
-		end
-		-- имя очередного обычного элемента
-		if @structure is null
-		begin	
-			set @fontstyle = '';
-			set @elementName = dbo.make_element_name(@G, @R, @C, 0, 0);
-		end
 
 		-- добавляем элемент
 
 		if @type = 'Label'
 		begin
+			set @height = 26;
 			set @FormElement = (
 				select dbo.make_label_xml( -- надпись перед текстовым полем
 					@elementName,
@@ -183,16 +240,16 @@ open Cur;
 					@x,
 					@prefix,
 					12,
-					''
+					@fontstyle
 				)
-			);	
+			);
 			set @FormContent.modify('insert sql:variable("@FormElement")
 				as last into (/FormConstructor/form)[1]'
 			);
-			set @x = @x + 8*len(@prefix) + dx;
+			set @x = @x + 8*len(@prefix) + @dx;
 		end;
 
-		if @type = 'ТП' -- если текстовое поле, мы добавляем подпись к нему и дальше текстовое поле
+		if @type = 'Memo' -- если текстовое поле, мы добавляем подпись к нему и дальше текстовое поле
 		begin
 			set @FormElement = (
 				select dbo.make_label_xml( -- надпись перед текстовым полем
@@ -201,9 +258,9 @@ open Cur;
 					@x,
 					@prefix,
 					12,
-					''
+					@fontstyle
 				)
-			);	
+			);
 			set @FormContent.modify('insert sql:variable("@FormElement")
 				as last into (/FormConstructor/form)[1]'
 			);
@@ -211,100 +268,10 @@ open Cur;
 			set @y = @y + 18 + @dy; -- 18 - костанта для 12 шрифта
 			set @FormElement = (
 				select dbo.make_memo_xml( -- само текстовое поле
-					@y, 
-					@x, 
-					900, 
-					@cnt_str * 18 + 8, -- уравнение нахождения высоты ТП зная кол-во строк при шрифте courier new
-					isnull(@default, ''), 
-					@elementName,
-					@prefix
-				)
-			);
-			set @FormContent.modify('insert sql:variable("@FormElement")
-				as last into (/FormConstructor/form)[1]'
-			);
-			set @y = @y + @height + @dy;
-		end;
-
-
-		begin
-			if @cur_row = @ex_row -- проверяем данный элемент, находится ли он на текущей строке или нет
-			begin -- если да, двигаемся по X
-				set @cur_col = @cur_col + 1
-				set @ex_col = @cur_col;
-				set @x = @x + @dx;
-			end;
-			else -- если нет, то спускаемся вниз по Y
-			begin
-				set @ex_row = @cur_row;
-				set @cur_col = 0;
-				set @x = @startx;
-				set @y = @y + @dy;
-			end;
-		end;
-		-- формируем имя элемента (позже надо будет добавить правило препинания)
-		set @elementName = dbo.make_element_name(@group, @cur_row, @cur_col, 0, 0)
-		-- текстовое поле
-		if @type = 'ТП' -- если текстовое поле, мы добавляем подпись к нему и дальше текстовое поле
-		begin
-			set @FormElement = (
-				select dbo.make_label_xml( -- надпись перед текстовым полем
-					'Label' + cast(@labelcount as varchar(3)),
-					@y,
-					@x,
-					@prefix,
-					12,
-					''
-				)
-			);	
-			set @FormContent.modify('insert sql:variable("@FormElement")
-				as last into (/FormConstructor/form)[1]'
-			);
-			set @labelcount = @labelcount + 1;
-			set @y = @y + 18 + @dy; -- 18 - костанта для 12 шрифта
-			set @FormElement = (
-				select dbo.make_memo_xml( -- само текстовое поле
-					@y, 
-					@x, 
-					900, 
-					@height, 
-					isnull(@default, ''), 
-					@elementName,
-					@prefix
-				)
-			);
-			set @FormContent.modify('insert sql:variable("@FormElement")
-				as last into (/FormConstructor/form)[1]'
-			);
-			set @y = @y + @height + @dy;
-		end;
-		-- префикс перед строкой
-		if @type in ('Строка', 'ВС', 'Дата')
-		begin
-			set @FormElement = (
-				select dbo.make_label_xml( -- надпсиь перед текстовым полем
-					'Label' + cast(@labelcount as varchar(3)),
-					@y,
-					@x, 
-					@prefix, 
-					12,
-					''
-				)
-			);
-			set @x = @x + len(@prefix) * 12;
-			set @labelcount = @labelcount + 1;
-			set @FormContent.modify('insert sql:variable("@FormElement")
-				as last into (/FormConstructor/form)[1]'
-			);
-		end;
-		-- Строка
-		if @type = 'Строка'
-		begin
-			set @FormElement = (
-				select dbo.make_text_edit_xml( -- само текстовое поле
 					@y, 
 					@x, 
 					@width, 
+					@height, -- уравнение нахождения высоты ТП зная кол-во строк при шрифте courier new
 					isnull(@default, ''), 
 					@elementName,
 					@prefix
@@ -313,15 +280,46 @@ open Cur;
 			set @FormContent.modify('insert sql:variable("@FormElement")
 				as last into (/FormConstructor/form)[1]'
 			);
-			set @x = @x + @width;
-			set @labelcount = @labelcount + 1
-			if @is_last_in_row = 1 
-			begin
-				set @y = @y + 26; -- константа для строк и вс пи 12 шрифте
-			end;
 		end;
-		-- выпадающий список
-		if @type = 'ВС'
+
+		if @type in ('Edit', 'ComboBox', 'CheckComboBox', 'DateEdit') and @prefix <> ''
+		begin
+			set @FormElement = (
+				select dbo.make_label_xml( -- надпись перед текстовым полем
+					'Label' + cast(@labelcount as varchar(3)),
+					@y,
+					@x,
+					@prefix,
+					12,
+					@fontstyle
+				)
+			);
+			set @FormContent.modify('insert sql:variable("@FormElement")
+				as last into (/FormConstructor/form)[1]'
+			);
+			set @x = @x + @dx + len(@prefix) * 10;
+			set @labelcount = @labelcount + 1;
+		end;
+
+		if @type = 'Edit'
+		begin
+			set @FormElement = (
+				select dbo.make_text_edit_xml( -- само текстовое поле
+					@y,
+					@x,
+					@width,
+					isnull(@default, ''),
+					@elementName,
+					@prefix
+				)
+			);
+			set @FormContent.modify('insert sql:variable("@FormElement")
+				as last into (/FormConstructor/form)[1]'
+			);
+			set @x = @x + @width + @dx;
+		end;
+
+		if @type = 'Combo'
 		begin
 			set @FormElement = (
 				select dbo.make_combobox_xml( -- само текстовое поле
@@ -337,31 +335,13 @@ open Cur;
 			set @FormContent.modify('insert sql:variable("@FormElement")
 				as last into (/FormConstructor/form)[1]'
 			);
-			set @x = @x + @width;
-			if @is_last_in_row = 1 
-			begin
-				set @y = @y + 26; -- константа для строк и вс пи 12 шрифте
-			end;
+			set @x = @x + @width + @dx;
 		end;
-		-- постфикс
-		if @type in ('ВС', 'Строка') and @postfix <> ''
+
+		if @is_last_in_row = 1
 		begin
-			set @elementName = dbo.make_element_name(@group, @cur_row, @cur_col, 1, 0)
-			set @x = @x + len(@postfix) * 12;
-			set @FormElement = (
-				select dbo.make_label_xml( -- надпсиь перед текстовым полем
-					@elementName, 
-					@y, 
-					@x, 
-					@prefix, 
-					12,
-					''
-				)
-			);
-			set @FormContent.modify('insert sql:variable("@FormElement")
-				as last into (/FormConstructor/form)[1]'
-			);
-			set @x = @x + len(@postfix) * 12;
+			set @x = @startx;
+			set @y = @y + @height + @dy;
 		end;
 		
 		fetch next from Cur 
@@ -369,9 +349,12 @@ open Cur;
 			@structure,
 			@type,
 			@prefix,
+			@G,
 			@R,
-			@C
-			@cnt_str,
+			@C,
+			@D,
+			@elementName,
+			@height,
 			@width,
 			@default,
 			@items,

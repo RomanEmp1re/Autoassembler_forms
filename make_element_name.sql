@@ -1,4 +1,4 @@
-create function dbo.make_element_name(
+alter function dbo.make_element_name(
 	@G int,
 	@R int,
 	@C int,
@@ -20,7 +20,7 @@ if @D > 0
 begin
 	set @result = @result + 'D' + iif(@D > 9, cast(@D as varchar(2)), '0' + cast(@D as varchar(2)))
 end
-if @N > 0
+if @N >= 0
 begin
 	set @result = @result + 'N' + iif(@N > 9, cast(@N as varchar(2)), '0' + cast(@N as varchar(2)))
 end
